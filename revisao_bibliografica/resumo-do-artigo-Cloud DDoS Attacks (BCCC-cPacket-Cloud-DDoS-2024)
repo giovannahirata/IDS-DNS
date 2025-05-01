@@ -1,0 +1,251 @@
+Cloud DDoS Attacks (BCCC-cPacket-Cloud-DDoS-2024)
+
+Toward Generating a New Cloud-Based Distributed Denial of Service (DDoS) Dataset and Cloud Intrusion Traffic Characterization
+
+Resumo
+O ataque de negação de serviço distribuído (DDoS) representa uma ameaça significativa à segurança de redes. Embora existam diversos métodos para detectar esses ataques, ainda é um desafio desenvolver detectores em tempo real com baixo custo computacional. A eficácia desses métodos depende, em grande parte, de conjuntos de dados bem estruturados. O artigo abordou a criação e avaliação de conjuntos de dados de DDoS em redes em nuvem.
+Após analisar 16 conjuntos de dados públicos, a pesquisa identificou 15 deficiências em diferentes aspectos, destacando a necessidade de uma nova abordagem para a criação de datasets. Com base nisso, o estudo apresenta um novo conjunto de dados público chamado BCCC-cPacket-Cloud-DDoS-2024, desenvolvido para superar as limitações anteriores.
+O dataset é construído em uma infraestrutura de nuvem, abrangendo mais de oito atividades benignas de usuários e 17 cenários de ataque DDoS. Além disso, foi criada uma ferramenta chamada Benign User Profiler (BUP) para gerar tráfego de rede benigno com base em perfis de comportamento normal. O conjunto de dados é rotulado manualmente e inclui mais de 300 características extraídas das camadas de rede e transporte usando a ferramenta NTLFlowLyzer.
+Na fase experimental, três algoritmos (ANOVA, ganho de informação e extra tree) são utilizados para identificar o conjunto ideal de características. Por fim, o artigo propõe um modelo de detecção de DDoS em múltiplas camadas e avalia seu desempenho usando o novo dataset, abordando as principais limitações das abordagens tradicionais.
+
+Introdução
+A pesquisa trazida pelo artigo aborda o domínio crítico da geração e avaliação de conjunto de dados DDoS, enfatizando o papel fundamental de conjuntos de dados bem construídos no aprimoramento da eficácia de algoritmos e sistemas de detecção e caracterização de DDoS.
+Desse modo, por meio de uma análise exaustiva de 16 conjuntos de dados disponíveis publicamente, foram identificadas deficiências significativas em várias dimensões, ressaltando o imperativo de uma nova abordagem para o desenvolvimento de conjuntos de dados.
+Assim, em vista desse entendimento dos desafios e deficiências em conjuntos de dados existentes, a contribuição pioneira desse trabalho é a introdução de um novo conjunto de dados DDoS baseado em nuvem, chamado BCCC-cPacket-Cloud-DDoS-2024, de modo a abrir caminhos para a criação de conjunto de dados mais confiáveis e abrangentes, avançando, dessa forma, estratégias de detecção e mitigação de DDoS de última geração.
+O desenvolvimento do conjunto de dados BCCC-cPacket-Cloud-DDoS-2024 envolve um exame abrangente de diversos aspectos, que vão desde tendências de ataque até a geração de tráfego benigno do usuário e criação de perfil de comportamento.
+O artigo propõe um roteiro para a criação de um conjunto de dados de tráfego de rede.
+Uma infraestrutura de nuvem com 8 atividades benignas e 17 cenários variados de ataque DDoS é estabelecida para enfrentar os desafios extraídos de conjuntos de dados anteriores. Além disso, uma ferramenta Benign User Profiler (BUP) é projetada e implantada para gerar tráfego de rede com base no comportamento benigno do usuário. O conjunto de dados é rotulado manualmente e mais de 300 features são extraídas das camadas de rede e transporte dos fluxos de tráfego de rede usando o Network and Transportation Layers Flow Analyzer (NTLFlowLyzer).
+Em seguida, para a criação do conjunto de dados, essa pesquisa propõe um modelo de caracterização de tráfego de rede para detectar diferentes atividades de rede, defendendo uma abordagem multicamadas para maximizar a relação custo-benefício: a primeira camada se concentra em distinguir tráfego benigno de atividade não benign, enquanto camadas subsequentes identificam comportamentos de rede específicos para classificação detalhada, o que aumenta a eficiência e minimiza os custos computacionais.
+Finalmente, as avaliações experimentais usando o conjunto de dados gerado validam a eficácia do modelo de detecção proposto na identificação precisa de várias atividades de rede.
+
+Principais contribuições da pesquisa:
+apresenta o BCCC-cPacket-Cloud-DDoS-2024, um novo conjunto de dados DDoS baseado em nuvem;
+projeto e desenvolvimento de uma ferramenta Benign User Profiler (BUP) para gerar tráfego de background benigno;
+projeto e desenvolvimento de um modelo de caracterização de DDoS;
+introduz o roteiro de criação de dataset de tráfego de rede baseado em nuvem.
+
+Organização do artigo:
+Seção 2 fornece informações básicas e se aprofunda na literatura relevante. 
+Seção 3 explica as diferentes etapas envolvidas na criação de um conjunto de dados de rede. 
+Seção 4 detalha o processo de construção do novo conjunto de dados, detalhando cada etapa envolvida em sua criação.
+Seção 5 expõe o modelo de caracterização de tráfego proposto neste estudo. 
+as descobertas dos esforços experimentais são descritas na Seção 6. 
+Seção 7 oferece uma análise e interpretação completas dos resultados experimentais. 
+Por fim, a Seção 8 conclui o artigo resumindo os principais insights e delineando possíveis caminhos para pesquisas futuras neste domínio.
+
+Revisão de literatura
+Aqui são analisadas pesquisas existentes sobre detecção de ataques DDoS em ambientes de nuvem, modelos de análise de tráfego e conjuntos de dados disponíveis para estudo de DDoS. Destaca as limitações dos trabalhos anteriores e aponta áreas para melhorias futuras.
+Detecção de ataques DDoS baseados em nuvem e análise de tráfego
+Ataques DDoS podem comprometer a disponibilidade de serviços e esgotar recursos de servidores. Então diversas abordagens têm sido propostas para detectar esses ataques em ambiente de nuvem:
+Detecção baseada em algoritmos de aprendizado de máquina: 
+técnicas de detecção por assinatura; 
+uso de algoritmos com SVM, Naive Bayes e Random Forest para classificação de ataques;
+Arquiteturas específicas para mitigação de DDoS: 
+modelo SDMTA combina monitoramento de rede oara detecção; 
+integração entre processamento MapReduce e detecção de inundações HTTP GET
+Rastreamento de pacotes e técnicas estatísticas: 
+método baseado em um auditor terceirizado (TPA) que usa a distribuição de Weibull para rastrear e mitigar ataques;
+uso de Modelos Ocultos de Markov (HMMs) e Random Forest para detectar ataques de baixa taxa, que se assemelham a fluxos normais de tráfego;
+Integração com infraestruturas em nuvem:
+sistema itegrado ao OpenStack emprega algoritmos de aprendizado de máquina e programação de soquetes brutos para monitorar e alertar administradores sobre ataques DDoS.
+Limitações identificadas:
+falta de datasets públicos;
+adaptação a novos ataques;
+escalabilidade;
+taxas de falso positivo/negativo.
+Conjunto de dados disponíveis para detecção de DDoS
+Dada a importância de avaliar para melhorar mecanismos de detcção de DDoS, foram analisados 16 datasets públicos:
+1. KDD99 1998-99;
+2. CAIDA (2004);
+3. CAIDA (2007);
+4. CAIDA (2017);
+5. CAIDA (2021);
+6. CDX (2009);
+7. Kyoto (2009);
+8. ISCX2012;
+9. ADFA (2013);
+10. CTU-13;
+11. UNSW-NB15;
+12. CIC-IDS2017;
+13. CSE-CIC-IDS2018;
+14. CIC-DDoS2019;
+15. SR-BH 2020;
+16. CUPID (2022).
+
+Principais limitações dos datasets existentes:
+1. distribuição desbalanceada de classes;
+2. baixa diversidade de ataques;
+3. cenários desatualizados;
+4. falta de tráfego realista;
+5. ausência de tráfego criptografado;
+6. baixa precisão de rotulagem;
+7. pouca consideração do comportamento do usuário;
+8. incompatibilidade com protocolos modernos;
+9. ataques de baixa taxa pouco explorados;
+10. ausência de variabilidade de tráfego;
+11. ausência de cenários híbridos de DDoS;
+12. exploração insuficiente de técnicas de amplificação de DDoS;
+13. representação inadequada de ataques DDoS na camada de aplicação;
+14. não inclusão de ameaças internas;
+15. ausência de dados multimodais.
+O artigo aborda as 10 primeiras limitações e cria um dataset mais abrangente.
+
+Roteiro de criação de dataset
+O roteiro cobre desde a concepção até a análise final do dataset, consistindo um processo estruturado:
+Definição do escopo (compreensão do ambiente-alvo)
+Preparação da infraestrutura (baseada, ou não, em nuvem, a fim de garantir escalabilidade, desempenho e coleta eficiente de tráfego)
+Definição de usuários e entidades (para gerar tráfego realista)
+Design do gerador de tráfego benigno (simular atividades legítimas com precisão, equilibrando realismo e eficiência)
+Análise de tendências de ataques (essencial para entender ameaças prevalentes e vulnerabilidades em ambientes de rede, para adaptação do dataset a novos cenários)
+Seleção e implementação de ataques (cenários de ataques devem refletir ameaças reais e cobrir uma ampla gama de técnicas)
+Captura e análise de dados (os dados são capturados em formato PCAP, permitindo a coleta detalhada de informações do tráfego de rede)
+Desenvolvimento de um analisador de tráfego (ferramenta de análise converte os dados brutos em formatos estruturados (como CSV) para facilitar a avaliação)
+Rotulagem e Validação (combinação entre rotulagem automatizada e validação humana)
+Seguir esse roteiro gera um conjunto de dados de qualidade e permite que pesquisadores simulem ambientes de rede do mundo real e desenvolvam estratégias de defesas robustas contra ameaças cibernéticas.
+
+O novo dataset
+Aqui é apresentado o dataset BCCC-cPacket-Cloud-DDoS-2024, sua infraestrutura, cenários de ataques e perfis benignos. Por fim, fornece dados analisados pelo NTLFlowLyzer e detalhes do dataset.
+Infraestrutura
+
+A arquitetura proposta simula um ambiente corporativo real, destacando vulnerabilidades a ataques DDoS. O VPC da vítima representa a rede interna de uma empresa típica, contendo quatro máquinas Windows para atividades normais dos usuários, como navegação na web e e-mails. Há também um usuário administrador, que realiza funções avançadas, como conexões seguras via SSH e TELNET, além de transferências de arquivos (FTP, SCP).
+Os servidores SSH e TELNET ficam em um VPC separado (Servers VPC), enquanto o servidor web, baseado no Nginx, está no VPC da vítima. A infraestrutura emprega AWS Traffic Mirroring para monitoramento detalhado da rede.
+As máquinas utilizam Windows Server 2022 (servidores) e Ubuntu Server 22.04 LTS (web server, administrador e capturador de pacotes).
+Um componente de ataque externo foi incluído para realizar ataques simulados via internet, sem a presença de mitigação como firewalls. As portas 80, 443, 22, entre outras, foram abertas para simular um ambiente realista, permitindo todo o tráfego.
+Cenários de ataque
+A pesquisa foca em ataques DDoS direcionados ao VPC da vítima.
+Dados não classificados como benignos ou ataques programados são rotulados como "suspeitos".
+Os ataques são estruturados em 17 tipo de DDoS baseados em TCP:
+• TCP-SYN-Valid;
+• TCP-bypassV1;
+• TCP-KILLALL-V2;
+• TCP-IGMP;
+• TCP-SYN;
+• KILLER-TCP;
+• TCP-CONTROL;
+• TCP-Flag-MIX;
+• TCP-Flag-SYN;
+• TCP-Flag-SYNACK;
+• TCP-Flag-ACK;
+• TCP-Flag-ACKPSH;
+• TCP-Flag-RSTACK;
+• TCP-Flag-SYNTIME;
+• TCP-Flag-SYNTFO;
+• TCP-Flag-OSYN;
+• TCP-Flag-OSYNP.
+
+Cada ataque dura 20 minutos, seguido por um intervalo de 10 minutos para evitar sobreposição de tráfego e facilitar a rotulagem dos dados. Durante os ataques, também são coletados dados de tráfego em background para diferenciar tráfego benigno e malicioso.
+Perfil de usuário benigno
+Aqui é detalhado como o comportamento normal dos usuários foi simulado para gerar tráfego benigno realista.
+
+Geradores de tráfego benigno existentes: em geral, focam em testes de desempenho, e não na simulação de tráfego benigno realista. Algumas ferramentas disponíveis:
+• PackETH;
+• Iperf;
+• D-ITG;
+• Ostinato;
+• SolarWinds;
+• Packet Sender;
+• Nping;
+• NetScan];
+• TRex.
+Destaca-se a importância de um gerador de tráfego benigno fiel à realidade.
+
+Gerador de tráfego benigno proposto: proposta de um gerador de tráfego específico para simular interações reais, categorizando as atividades benignas:
+navegação na web;
+e-mails;
+atividades sistêmicas (captura do tráfego natural do SO para atualizações e serviços internos); 
+linha de comando (admin);
+SSH/linha de comando remota (admin);
+transferências de arquivos:
+FTP
+SCP
+
+Cenários benignos: incluem dois dias de dados exclusivamente benignos e são mantidos uniformes mesmo nos dias de ataque, refletindo a consistência do comportamento dos usuários reais.
+Captura de dados
+Os dados foram capturados diariamente das 09:00 às 17:00. Durante a coleta, observou-se que mais de 90% do tráfego da rede era baseado no protocolo TCP, destacando sua relevância para a análise de ataques DDoS.
+Rotulagem dos dados (geração do arquivo CSV)
+Devido à complexidade dos pacotes brutos, foram utilizadas ferramentas de análise de tráfego, incluindo NTLFlowLyzer, CICFlowMeter e NFStream. Depois de análises e comparações, o NTLFlowLyzer foi escolhido por sua capacidade de lidar com tráfego em nuvem e pacotes encapsulados em VXLAN, garantindo uma análise detalhada.
+Os dados rotulados foram organizados em tabelas CSV, contendo informações sobre cada atividade e categoria.
+A classificação dos dados seguiu o cronograma dos ataques para definir quais pacotes eram maliciosos, enquanto os dados benignos foram rotulados com base nos dias exclusivamente benignos.
+O rótulo "suspeito" foi criado para tráfego que não se encaixa nos perfis benignos ou de ataque.
+
+
+Modelo de caracterização de tráfego proposto
+
+No modelo proposto, a camada inicial foca no treinamento com dados rotulados para estabelecer a classificação de cada entrada. 
+Posteriormente, uma arquitetura de caminho duplo é implementada dentro da segunda camada, apresentando dois modelos distintos. Um modelo é treinado exclusivamente com dados benignos, enquanto o outro é treinado somente com dados de ataque. 
+O processo de treinamento na segunda camada é centralizado em torno da consideração da atividade específica associada à entrada. 
+Se a primeira camada classifica o rótulo de entrada como benigno, o caminho subsequente direciona a entrada para o modelo benigno.
+Por outro lado, se a primeira camada identifica o rótulo de entrada como um ataque, a entrada é roteada para o modelo de ataque correspondente.
+Nos casos em que a primeira camada produz um rótulo suspeito, a atividade é similarmente classificada como suspeita.
+Por fim, a saída final do sistema corresponde à atividade identificada com base no processamento em cascata na estrutura multicamadas.
+Vantagens e conclusões deste modelo proposto:
+a arquitetura de caminho duplo dentro da segunda camada aprimora ainda mais a flexibilidade e a interpretabilidade do modelo. Essa abordagem atenua o risco de overfitting e as preocupações relacionadas à natureza de caixa-preta dos algoritmos baseados em DL. Além disso, traz uma forma efetiva de distinção de atividades dentro do tráfego de rede;
+a estrutura multicamadas equilibra eficiência computacional com precisão de classificação;
+o modelo leva em consideração a interoperabilidade e interpretabilidade que garantem sua adequação para aplicações do mundo real.
+
+Resultados experimentais
+Aqui, detalha-se a experimentação do modelo, desde a seleção de características até os cenários de teste e a comparação com outras abordagens.
+Seleção de características 
+Foram analisados três algoritmos para selecionar as características mais relevantes para a classificação dos dados:
+ANOVA (Análise de Variância)
+Ganho de Informação (Information Gain)
+Ensemble Learning com Extra Tree Classifier
+A Tabela 4 apresenta os resultados obtidos por cada um desses algoritmos, destacando as melhores características para classificação.
+
+
+Seleção e implementação dos algoritmos de aprendizado
+O Random Forest (RF) foi escolhido como o algoritmo principal para todas as camadas do modelo devido à sua robustez na classificação de múltiplas classes e habilidade em lidar com distribuições de dados desbalanceadas.
+O modelo será adequado para abordar a complexidade inerente à distinção entre 8 categorias de atividades benignas, 17 de ataques e 1 de atividade suspeita.
+O RF se destaca por seu método de aprendizado em conjunto (ensemble learning), combinando múltiplas árvores de decisão para melhorar a precisão e generalização do modelo. 
+Em resumo, essa fusão de modelagem hierárquica e aprendizagem de conjunto  é instrumental na classificação precisa das 26 classes de atividades diversas.
+Cenários de experimentos e resultados
+ Foram definidos sete cenários experimentais (ou tarefas) para avaliar a eficácia do modelo:
+Classificação geral em benigno, suspeito ou ataque
+Identificação específica de tipos de ataque
+Identificação de atividades benignas
+Classificação entre atividades suspeitas e benignas
+Classificação entre atividades suspeitas e ataques
+Identificação entre ataques e atividades benignas
+Classificação completa de todas as atividades
+O sucesso nesses cenários é crucial para garantir que o modelo possa identificar padrões de tráfego de rede de maneira eficaz.
+O modelo foi comparado com Naive Bayes (NB), Support Vector Machine (SVM), Random Forest (RF) e XGBoost.
+A Tabela 5 resume os resultados e evidencia a superioridade do modelo proposto em relação às abordagens alternativas.
+
+
+Análise e discussão
+Aqui são analisados os resultados experimentais obtidos.
+Análise das features selecionadas
+cabeçalho;
+flags;
+delta tempo e IAT;
+taxa de pacotes;
+todas juntas.
+Desempenho do modelo:
+Supera abordagens tradicionais com classificação em múltiplas etapas.
+Desafia a distinção entre atividades suspeitas e ataques reais devido à sua similaridade.
+Resolução de limitações anteriores:
+Melhor equilíbrio de classes (60% benigno, 40% malicioso).
+Inclui 17 tipos de ataques DDoS atualizados.
+Simula tráfego realista com comunicação criptografada e perfis de usuário diversos.
+Compara com conjuntos de dados anteriores:
+Oferece maior realismo e abrangência em relação aos conjuntos anteriores.
+
+
+Conclusões e trabalhos futuros
+Principais contribuições: 
+Introdução do conjunto de dados BCCC-cPacket-Cloud-DDoS-2024, com foco em detecção avançada de DDoS.
+Abordagem de classificação em camadas melhora a precisão na detecção de ataques complexos.
+Avanços na detecção de DDoS:
+Identificação eficaz de ataques sofisticados, incluindo variações de taxa e comportamento pulsante.
+Abordagem robusta para distinguir tráfego legítimo de malicioso em ambientes de nuvem.
+Limitações e direções futuras: 
+Explorar a detecção em tempo real e adaptar o modelo para redes IoT/IIoT.
+Investigar novos protocolos e aprimorar a análise de tráfego criptografado.
+
+
+Dataset:
+contém:
+1 pasta de CSVs
+1 pasta com arquivos PCAPs
+1 arquivo csv: merged_CSVs.csv
+
