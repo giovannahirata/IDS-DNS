@@ -1,0 +1,34 @@
+# Datasets (arquivos grandes)
+*.csv
+
+# Modelos salvos (podem ser grandes)
+modelos_salvos/*.pkl
+modelos_salvos/*.joblib
+
+# Artefatos temporários
+*.pyc
+__pycache__/
+*.so
+*.egg-info/
+dist/
+build/
+
+# Ambientes virtuais
+venv/
+env/
+ENV/
+
+# Resultados e logs
+*.log
+resultados.json
+
+# Arquivos de backup
+*.save
+*.bak
+
+# Arquivos compactados grandes
+*.tar.gz
+*.zip
+*.tar
+*.rar
+*.7z
