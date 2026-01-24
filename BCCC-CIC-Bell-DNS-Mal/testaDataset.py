@@ -6,3 +6,5 @@ print(df.head())             # Ver as primeiras linhas
 print(df.columns)           # Ver nomes das colunas
 print(df.info())            # Tipos de dados e nulls
 print(df.describe())        # Estatísticas de colunas numéricas
+
+print(df.dtypes.value_counts())

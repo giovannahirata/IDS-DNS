@@ -1,0 +1,51 @@
+Dataset original: 3595920 linhas
+Dataset reduzido: 200000 linhas (para evitar crash por memória)
+                    Description             Value
+0                    Session id              5316
+1                        Target           maligno
+2                   Target type            Binary
+3           Original data shape     (200000, 117)
+4        Transformed data shape     (200000, 134)
+5   Transformed train set shape     (140000, 134)
+6    Transformed test set shape      (60000, 134)
+7              Numeric features               102
+8          Categorical features                14
+9      Rows with missing values             97.7%
+10                   Preprocess              True
+11              Imputation type            simple
+12           Numeric imputation              mean
+13       Categorical imputation              mode
+14     Maximum one-hot encoding                25
+15              Encoding method              None
+16               Fold Generator   StratifiedKFold
+17                  Fold Number                10
+18                     CPU Jobs                -1
+19                      Use GPU             False
+20               Log Experiment             False
+21              Experiment Name  clf-default-name
+22                          USI              cb27
+                    Description             Value
+0                    Session id              3727
+1                        Target           maligno
+2                   Target type            Binary
+3           Original data shape     (200000, 117)
+4        Transformed data shape     (200000, 135)
+5   Transformed train set shape     (140000, 135)
+6    Transformed test set shape      (60000, 135)
+7              Numeric features               102
+8          Categorical features                14
+9      Rows with missing values             97.7%
+10                   Preprocess              True
+11              Imputation type            simple
+12           Numeric imputation              mean
+13       Categorical imputation              mode
+14     Maximum one-hot encoding                25
+15              Encoding method              None
+16               Fold Generator   StratifiedKFold
+17                  Fold Number                10
+18                     CPU Jobs                -1
+19                      Use GPU             False
+20               Log Experiment             False
+21              Experiment Name  clf-default-name
+22                          USI              8bb5
+Processing:   0%|          | 0/73 [00:00<?, ?it/s]Processing:   7%|▋         | 5/73 [00:34<07:43,  6.82s/it]Processing:  10%|▉         | 7/73 [00:34<04:48,  4.36s/it]Processing:  12%|█▏        | 9/73 [01:07<09:04,  8.51s/it]Processing:  15%|█▌        | 11/73 [01:07<05:55,  5.73s/it]Processing:  18%|█▊        | 13/73 [01:20<06:04,  6.07s/it]Processing:  21%|██        | 15/73 [01:21<04:02,  4.19s/it]Processing:  23%|██▎       | 17/73 [01:33<04:33,  4.88s/it]Processing:  26%|██▌       | 19/73 [01:33<03:03,  3.40s/it]Processing:  29%|██▉       | 21/73 [01:51<04:20,  5.01s/it]Processing:  32%|███▏      | 23/73 [01:51<02:55,  3.51s/it]Processing:  34%|███▍      | 25/73 [26:43:52<193:38:29, 14523.12s/it]Processing:  37%|███▋      | 27/73 [26:43:52<129:37:29, 10144.56s/it]

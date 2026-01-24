@@ -54,3 +54,50 @@ columns = df_benign.columns
 print(list(columns))
 # print(type(columns))
 print(df_benign.shape)
+
+###
+
+import pandas as pd 
+
+# carregamento dos dados
+
+benigns = ["output-of-benign-pcap-0.csv", 
+           "output-of-benign-pcap-1.csv",
+           "output-of-benign-pcap-2.csv",
+           "output-of-benign-pcap-3.csv"]
+
+df_benigns = [pd.read_csv(f) for f in benigns]
+df_benign = pd.concat(df_benigns)
+
+df_malware = pd.read_csv("output-of-malware-pcap.csv")
+
+df_phishing = pd.read_csv("output-of-phishing-pcap.csv")
+
+df_spam = pd.read_csv("output-of-spam-pcap.csv")
+
+# adiciona rotulamento para classificação do modelo:
+
+# binária:
+
+df_benign["malign"] = False
+
+df_malware["malign"] = True
+
+df_phishing["malign"] = True
+
+df_spam["malign"] = True
+
+# multiclasse:
+
+df_benign["malign_type"] = "benign"
+
+df_malware["malign_type"] = "malware"
+
+df_phishing["malign_type"] = "phishing"
+
+df_spam["malign_type"] = "spam"
+
+# unifica os datasets:
+
+df = pd.concat([df_benign, df_malware, df_phishing, df_spam])
+
