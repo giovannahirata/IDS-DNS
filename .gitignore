@@ -1,2 +1,79 @@
-BCCC-CIC-Bell-DNS-Mal/selecao_automatizada_autoML/Miniconda3-latest-Linux-x86_64.sh
+# Instaladores e scripts grandes
 *.sh
+Miniconda3-*.sh
+*.exe
+*.dmg
+
+# Datasets e arquivos de dados (grandes)
+*.csv
+*.parquet
+*.json
+*.txt
+!features.txt
+!requirements.txt
+!README.txt
+
+# Modelos treinados (podem ser grandes)
+*.keras
+*.h5
+*.pkl
+*.joblib
+*.pt
+*.pth
+*.ckpt
+*.pb
+
+# Checkpoints e logs
+checkpoints/
+logs/
+*.log
+tensorboard/
+wandb/
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+*.ipynb_checkpoints
+
+# Sistema operacional
+Thumbs.db
+.DS_Store
+*.bak
+*.tmp
+
+# Arquivos temporários de dados
+*.cache
+temp/
+tmp/
