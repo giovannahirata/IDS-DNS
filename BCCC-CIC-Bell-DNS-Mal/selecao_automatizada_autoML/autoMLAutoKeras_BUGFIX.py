@@ -77,8 +77,7 @@ print("Use o script 'autoMLKerasTuner.py' como alternativa.\n")
 print("Para continuar mesmo assim, o código abaixo tentará usar AutoKeras...")
 print("="*70)
 
-# CÓDIGO ORIGINAL (COM BUG):
-# Este código falhará com o erro conhecido
+
 try:
     # Garantir que os dados estão no formato correto
     print(f"\nClasses únicas: {np.unique(y_train_bin)}")

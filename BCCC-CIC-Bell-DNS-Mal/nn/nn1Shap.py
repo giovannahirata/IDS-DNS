@@ -11,6 +11,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.metrics import roc_auc_score, roc_curve
 import pickle
+import shap
 
 # carregamento e rotulagem dos dados
 
@@ -70,6 +71,9 @@ y_valid_bin = df_valid["maligno"]
 
 print(f"\nFeatures originais: {x_train.shape[1]}")
 
+# salva nomes das features
+original_feature_names = list(x_train.columns)
+
 # identifica coluna numericas:
 numerical_cols = x_train.select_dtypes(include=['int64', 'float64']).columns
    
@@ -80,13 +84,36 @@ x_valid[numerical_cols] = scaler.transform(x_valid[numerical_cols])
 
 # remove features com variancia zero ou muito baixa
 selector = VarianceThreshold(threshold=0.01)
-x_train = selector.fit_transform(x_train)
-x_valid = selector.transform(x_valid)
+x_train_transformed = selector.fit_transform(x_train)
+x_valid_transformed = selector.transform(x_valid)
 
-print(f"Features após remoção: {x_train.shape[1]}")
+# obtém nomes das features que foram mantidas após VarianceThreshold
+selected_indices = selector.get_support(indices=True)
+selected_feature_names = [original_feature_names[i] for i in selected_indices]
 
-x_train = np.array(x_train, dtype=np.float32)
-x_valid = np.array(x_valid, dtype=np.float32)
+# verifica e corrige nomes duplicados (adiciona índice se houver duplicatas)
+name_counts = {}
+unique_feature_names = []
+for name in selected_feature_names:
+    if name in name_counts:
+        name_counts[name] += 1
+        unique_feature_names.append(f"{name}_{name_counts[name]}")
+    else:
+        name_counts[name] = 0
+        unique_feature_names.append(name)
+
+# verifica se há duplicatas
+duplicates = [name for name, count in name_counts.items() if count > 0]
+if duplicates:
+    print(f"\nFeatures duplicadas encontradas e renomeadas: {duplicates}")
+    selected_feature_names = unique_feature_names
+
+print(f"Features após remoção: {x_train_transformed.shape[1]}")
+print(f"Features selecionadas: {len(selected_feature_names)}")
+print(f"Primeiras 10 features: {selected_feature_names[:10]}")
+
+x_train = np.array(x_train_transformed, dtype=np.float32)
+x_valid = np.array(x_valid_transformed, dtype=np.float32)
 y_train_bin = np.array(y_train_bin, dtype=np.float32)
 y_valid_bin = np.array(y_valid_bin, dtype=np.float32)
 
@@ -234,7 +261,8 @@ plt.legend()
 
 plt.tight_layout()
 plt.savefig('training_history.png')
-plt.show()
+plt.close() 
+print("Gráfico de treinamento salvo: training_history.png")
 
 # plotar curva ROC
 fpr, tpr, thresholds = roc_curve(y_valid_bin, y_pred_proba)
@@ -246,7 +274,104 @@ plt.ylabel('True Positive Rate')
 plt.title('Curva ROC')
 plt.legend()
 plt.savefig('roc_curve.png')
-plt.show()
+plt.close() 
+print("Curva ROC salva: roc_curve.png")
+
+# análise com o SHAP:
+print("\nIniciando análise com SHAP")
+
+# usa subset menor para SHAP (eh mais rápido)
+x_train_sample = x_train[:1000]  # pega 1000 amostras
+x_valid_sample = x_valid[:100]   # pega 100 amostras para análise
+
+print(f"Usando {len(x_train_sample)} amostras de treino para background")
+print(f"Calculando SHAP para {len(x_valid_sample)} amostras de validação")
+
+# calcula valores shap
+print("Criando explainer...")
+explainer = shap.DeepExplainer(model, x_train_sample)
+
+print("Calculando valores SHAP (pode demorar)...")
+shap_values = explainer.shap_values(x_valid_sample)
+
+print(f"\nNúmero de features no modelo: {x_train.shape[1]}")
+print(f"Número de nomes de features salvos: {len(selected_feature_names)}")
+
+assert x_train.shape[1] == len(selected_feature_names), \
+    f"Erro: {x_train.shape[1]} features vs {len(selected_feature_names)} nomes"
+
+# verifica formato dos shap_values
+if isinstance(shap_values, list):
+    print(f"SHAP values é uma lista com {len(shap_values)} elementos")
+    shap_array = shap_values[0]  # para classificação binária, pegar primeiro elemento
+else:
+    shap_array = shap_values
+
+print(f"Shape dos SHAP values: {shap_array.shape}")
+print(f"Shape do x_valid_sample: {x_valid_sample.shape}")
+
+# remove dimensão extra se existir (100, 104, 1) -> (100, 104)
+if len(shap_array.shape) == 3 and shap_array.shape[2] == 1:
+    shap_array = shap_array[:, :, 0]
+    print(f"Shape após squeeze: {shap_array.shape}")
+
+# visualização do summary plot (importância global)
+print("\nGerando summary plot...")
+plt.figure(figsize=(12, 10))
+shap.summary_plot(shap_array, x_valid_sample, 
+                  feature_names=selected_feature_names,
+                  max_display=20,  # mostra top 20 features
+                  show=False)
+plt.tight_layout()
+plt.savefig('shap_summary_plot.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("SHAP summary plot salvo: shap_summary_plot.png")
+
+# visualização do bar plot (importância média)
+print("Gerando bar plot...")
+plt.figure(figsize=(12, 10))
+shap.summary_plot(shap_array, x_valid_sample,
+                  feature_names=selected_feature_names,
+                  max_display=20,  # mostra top 20 features
+                  plot_type="bar", show=False)
+plt.tight_layout()
+plt.savefig('shap_bar_plot.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("SHAP bar plot salvo: shap_bar_plot.png")
+
+# visualização do plot waterfall para primeira predição
+print("Gerando waterfall plot...")
+plt.figure(figsize=(12, 10))
+
+# converte expected_value para valor numérico Python
+if isinstance(explainer.expected_value, (list, np.ndarray)):
+    expected_val = float(explainer.expected_value[0])
+else:
+    # se é tensor TensorFlow, converter para numpy primeiro
+    try:
+        expected_val = float(explainer.expected_value.numpy())
+    except:
+        expected_val = float(explainer.expected_value)
+
+print(f"Expected value: {expected_val}")
+print(f"Shape para waterfall - shap_array[0]: {shap_array[0].shape}")
+
+shap.waterfall_plot(
+    shap.Explanation(
+        values=shap_array[0],  # 1D: (104,)
+        base_values=expected_val,
+        data=x_valid_sample[0],
+        feature_names=selected_feature_names
+    ),
+    max_display=20,  # mostra top 20 features
+    show=False
+)
+plt.tight_layout()
+plt.savefig('shap_waterfall_plot.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("SHAP waterfall plot salvo: shap_waterfall_plot.png")
+
+print("\nAnálise SHAP concluída")
 
 # salva modelo
 model.save('dns_intrusion_model_nn1.keras')

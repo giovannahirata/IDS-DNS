@@ -13,7 +13,7 @@ Miniconda3-*.sh
 !requirements.txt
 !README.txt
 
-# Modelos treinados (podem ser grandes)
+# Modelos treinados 
 *.keras
 *.h5
 *.pkl
