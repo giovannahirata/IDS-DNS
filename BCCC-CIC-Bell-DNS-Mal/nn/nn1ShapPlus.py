@@ -315,6 +315,28 @@ if len(shap_array.shape) == 3 and shap_array.shape[2] == 1:
     shap_array = shap_array[:, :, 0]
     print(f"Shape após squeeze: {shap_array.shape}")
 
+# cria objeto Explanation para os plots que necessitam
+# converte expected_value para valor numérico Python
+if isinstance(explainer.expected_value, (list, np.ndarray)):
+    expected_val = float(explainer.expected_value[0])
+else:
+    try:
+        # converte tensor para numpy e extrai escalar
+        expected_val_array = explainer.expected_value.numpy()
+        expected_val = float(expected_val_array.item() if expected_val_array.size == 1 else expected_val_array[0])
+    except:
+        expected_val = float(explainer.expected_value)
+
+print(f"Expected value (base value): {expected_val}")
+
+# cria objeto Explanation com todos os dados necessários
+shap_explanation = shap.Explanation(
+    values=shap_array,
+    base_values=np.full(len(shap_array), expected_val),
+    data=x_valid_sample,
+    feature_names=selected_feature_names
+)
+
 # visualização do summary plot (importância global)
 print("\nGerando summary plot...")
 plt.figure(figsize=(12, 10))
@@ -339,37 +361,203 @@ plt.savefig('shap_bar_plot.png', dpi=150, bbox_inches='tight')
 plt.close()
 print("SHAP bar plot salvo: shap_bar_plot.png")
 
-# visualização do plot waterfall para primeira predição
+# visualização do waterfall para primeira predição
 print("Gerando waterfall plot...")
 plt.figure(figsize=(12, 10))
 
-# converte expected_value para valor numérico Python
-if isinstance(explainer.expected_value, (list, np.ndarray)):
-    expected_val = float(explainer.expected_value[0])
-else:
-    # se é tensor TensorFlow, converter para numpy primeiro
-    try:
-        expected_val = float(explainer.expected_value.numpy())
-    except:
-        expected_val = float(explainer.expected_value)
-
-print(f"Expected value: {expected_val}")
-print(f"Shape para waterfall - shap_array[0]: {shap_array[0].shape}")
-
-shap.waterfall_plot(
-    shap.Explanation(
-        values=shap_array[0],  # 1D: (104,)
-        base_values=expected_val,
-        data=x_valid_sample[0],
-        feature_names=selected_feature_names
-    ),
-    max_display=20,  # mostra top 20 features
-    show=False
-)
+# usa o objeto Explanation já criado
+shap.waterfall_plot(shap_explanation[0], max_display=20, show=False)
 plt.tight_layout()
 plt.savefig('shap_waterfall_plot.png', dpi=150, bbox_inches='tight')
 plt.close()
 print("SHAP waterfall plot salvo: shap_waterfall_plot.png")
+
+# heatmap de valores SHAP para visualizar padrões entre amostras
+print("\nGerando heatmap de valores SHAP...")
+plt.figure(figsize=(14, 10))
+shap.plots.heatmap(shap_explanation, max_display=15, show=False)
+plt.tight_layout()
+plt.savefig('shap_heatmap.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("   Heatmap salvo: shap_heatmap.png")
+print("   (mostra padrões de SHAP values em 100 amostras)")
+
+# bar plot com valores absolutos máximos (destaca features com alto impacto)
+print("\nGerando bar plot com valores máximos...")
+plt.figure(figsize=(12, 10))
+shap.plots.bar(shap_explanation.abs.max(0), max_display=20, show=False)
+plt.tight_layout()
+plt.savefig('shap_bar_max.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("   Bar plot (max) salvo: shap_bar_max.png")
+print("   (destaca features com impacto máximo em casos específicos)")
+
+# beeswarm plot com valores absolutos e cor sólida
+print("\nGerando beeswarm plot com valores absolutos...")
+plt.figure(figsize=(12, 10))
+shap.plots.beeswarm(shap_explanation.abs, color="shap_red", max_display=20, show=False)
+plt.tight_layout()
+plt.savefig('shap_beeswarm_abs.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("   Beeswarm absoluto salvo: shap_beeswarm_abs.png")
+print("   (mostra magnitude do impacto sem considerar direção)")
+
+# scatter plots para as top 5 features mais importantes
+print("\nGerando scatter plots para top features...")
+mean_abs_shap = np.abs(shap_array).mean(axis=0)
+top_features_idx = np.argsort(mean_abs_shap)[-5:][::-1]
+top_features = [selected_feature_names[i] for i in top_features_idx]
+
+for i, feature_name in enumerate(top_features, 1):
+    print(f"   {i}. {feature_name}")
+    plt.figure(figsize=(10, 6))
+    shap.plots.scatter(shap_explanation[:, feature_name], show=False)
+    plt.tight_layout()
+    plt.savefig(f'shap_scatter_{feature_name.replace("/", "_")}.png', dpi=150, bbox_inches='tight')
+    plt.close()
+
+print(f"   Scatter plots salvos: shap_scatter_*.png")
+
+# dependence plots - mostra interações entre features
+print("\nGerando dependence plots (interações entre features)...")
+# para as top 3 features, mostra interação com outras features
+for i, feature_name in enumerate(top_features[:3], 1):
+    try:
+        plt.figure(figsize=(10, 6))
+        shap.plots.scatter(shap_explanation[:, feature_name], 
+                          color=shap_explanation, 
+                          show=False)
+        plt.tight_layout()
+        plt.savefig(f'shap_dependence_{feature_name.replace("/", "_")}_colored.png', 
+                   dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"   {i}. Dependence plot para {feature_name} salvo")
+    except Exception as e:
+        print(f"   {i}. Erro ao gerar dependence plot para {feature_name}: {e}")
+
+# force plot para exemplos específicos (maligno e benigno)
+print("\nGerando force plots para exemplos específicos...")
+# usa as predições das 100 amostras
+y_valid_sample = y_valid_bin[:100]
+y_pred_sample = model.predict(x_valid_sample).ravel()
+
+# encontra exemplos de tráfego maligno e benigno nas 100 amostras
+malicious_idx = np.where(y_valid_sample == 1)[0]
+benign_idx = np.where(y_valid_sample == 0)[0]
+
+if len(malicious_idx) > 0 and len(benign_idx) > 0:
+    # exemplo maligno
+    mal_sample = malicious_idx[0]
+    shap.plots.waterfall(shap_explanation[mal_sample], max_display=15, show=False)
+    plt.tight_layout()
+    plt.savefig('shap_waterfall_malicious_example.png', dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"   Waterfall plot (tráfego MALIGNO) salvo: shap_waterfall_malicious_example.png")
+    print(f"   Predição: {y_pred_sample[mal_sample]:.4f}, Real: {y_valid_sample[mal_sample]}")
+    
+    # exemplo benigno
+    ben_sample = benign_idx[0]
+    shap.plots.waterfall(shap_explanation[ben_sample], max_display=15, show=False)
+    plt.tight_layout()
+    plt.savefig('shap_waterfall_benign_example.png', dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"   Waterfall plot (tráfego BENIGNO) salvo: shap_waterfall_benign_example.png")
+    print(f"   Predição: {y_pred_sample[ben_sample]:.4f}, Real: {y_valid_sample[ben_sample]}")
+else:
+    print(f"   Aviso: Não há exemplos suficientes nas 100 amostras")
+    print(f"   Malignos: {len(malicious_idx)}, Benignos: {len(benign_idx)}")
+
+# análise de features agrupadas por correlação
+print("\nAnálise de clustering de features...")
+try:
+    # calcula matriz de correlação para features selecionadas
+    x_valid_df = pd.DataFrame(x_valid_transformed, columns=selected_feature_names)
+    
+    # remove features constantes
+    non_constant = x_valid_df.std() > 0
+    x_valid_filtered = x_valid_df.loc[:, non_constant]
+    
+    if len(x_valid_filtered.columns) > 1:
+        from scipy.cluster.hierarchy import dendrogram, linkage
+        from scipy.spatial.distance import squareform
+        
+        # calcula correlação e distância
+        corr = x_valid_filtered.corr().fillna(0)
+        corr_dist = 1 - np.abs(corr)
+        
+        # hierarchical clustering
+        linkage_matrix = linkage(squareform(corr_dist), method='average')
+        
+        # plot dendrograma
+        plt.figure(figsize=(15, 8))
+        dendrogram(linkage_matrix, labels=x_valid_filtered.columns, 
+                  leaf_rotation=90, leaf_font_size=8)
+        plt.title('Dendrograma de Clustering de Features (por correlação)')
+        plt.xlabel('Features')
+        plt.ylabel('Distância (1 - |correlação|)')
+        plt.tight_layout()
+        plt.savefig('feature_clustering_dendrogram.png', dpi=150, bbox_inches='tight')
+        plt.close()
+        print("   Dendrograma salvo: feature_clustering_dendrogram.png")
+        print("   (mostra agrupamentos de features correlacionadas)")
+except Exception as e:
+    print(f"   Erro no clustering: {e}")
+
+# resumo estatístico dos valores SHAP
+print("\nEstatísticas dos valores SHAP:")
+shap_stats = pd.DataFrame({
+    'Feature': selected_feature_names,
+    'Mean |SHAP|': np.abs(shap_array).mean(axis=0),
+    'Std |SHAP|': np.abs(shap_array).std(axis=0),
+    'Max |SHAP|': np.abs(shap_array).max(axis=0),
+    'Min SHAP': shap_array.min(axis=0),
+    'Max SHAP': shap_array.max(axis=0)
+})
+shap_stats = shap_stats.sort_values('Mean |SHAP|', ascending=False)
+
+print("\n   Top 15 features por impacto médio absoluto:")
+print(shap_stats.head(15).to_string(index=False))
+
+# salva estatísticas completas
+shap_stats.to_csv('shap_feature_statistics.csv', index=False)
+print("\n   Estatísticas completas salvas: shap_feature_statistics.csv")
+
+# análise de distribuição de SHAP values
+print("\nGerando histogramas de distribuição SHAP...")
+fig, axes = plt.subplots(3, 2, figsize=(14, 12))
+fig.suptitle('Distribuição de SHAP Values - Top 6 Features', fontsize=14, y=1.00)
+
+for idx, feature_name in enumerate(top_features[:6]):
+    ax = axes[idx // 2, idx % 2]
+    feature_idx = selected_feature_names.index(feature_name)
+    ax.hist(shap_array[:, feature_idx], bins=50, edgecolor='black', alpha=0.7)
+    ax.set_title(f'{feature_name}')
+    ax.set_xlabel('SHAP value')
+    ax.set_ylabel('Frequência')
+    ax.axvline(x=0, color='red', linestyle='--', linewidth=1, alpha=0.5)
+    ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('shap_distribution_histograms.png', dpi=150, bbox_inches='tight')
+plt.close()
+print("   Histogramas salvos: shap_distribution_histograms.png")
+
+print("\nArquivos gerados:")
+print("  - shap_summary_plot.png (beeswarm - distribuição completa)")
+print("  - shap_bar_plot.png (importância média)")
+print("  - shap_bar_max.png (importância por impacto máximo)")
+print("  - shap_beeswarm_abs.png (magnitude absoluta)")
+print("  - shap_waterfall_plot.png (exemplo geral)")
+print("  - shap_waterfall_malicious_example.png (exemplo maligno)")
+print("  - shap_waterfall_benign_example.png (exemplo benigno)")
+print("  - shap_heatmap.png (padrões entre amostras)")
+print("  - shap_scatter_*.png (dependência de features individuais)")
+print("  - shap_dependence_*_colored.png (interações entre features)")
+print("  - shap_distribution_histograms.png (distribuições SHAP)")
+print("  - feature_clustering_dendrogram.png (agrupamento de features)")
+print("  - shap_feature_statistics.csv (estatísticas detalhadas)")
+print("  - training_history.png (histórico de treinamento)")
+print("  - roc_curve.png (curva ROC)")
 
 print("\nAnálise SHAP concluída")
 
