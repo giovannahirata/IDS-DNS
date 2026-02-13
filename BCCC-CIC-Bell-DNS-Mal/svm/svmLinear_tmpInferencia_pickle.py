@@ -280,7 +280,7 @@ plt.xticks(rotation=45)
 plt.show()
 
 
-# 9. Análise de Importância de Features (Opcional) ----------------------------
+# 9. Análise de Importância de Features  ----------------------------
 print("\nAnalisando importância das features...")
 
 # Usar modelo linear para interpretabilidade
