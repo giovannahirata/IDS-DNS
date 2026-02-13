@@ -1,23 +1,13 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
-##
-from sklearn.svm import SVC, LinearSVC
-
-# from sklearn.neighbors import NearestNeighbors
+from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-
-##
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.feature_selection import VarianceThreshold
-from sklearn.decomposition import PCA
-from sklearn.pipeline import make_pipeline
-from sklearn.linear_model import SGDClassifier
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# 1. Carregar e combinar datasets -----------------------------------------------
 print("Carregando e combinando datasets...")
 
 # Carregar datasets benignos
@@ -48,7 +38,6 @@ spam_df['tipo_maligno'] = 'Spam'
 # Combinar todos os dados
 df = pd.concat([benign_df, malware_df, phishing_df, spam_df])
 
-# 2. Pré-processamento ---------------------------------------------------------
 print("\nPré-processamento de dados...")
 
 # Remover colunas não úteis
@@ -76,7 +65,6 @@ X = X.replace([np.inf, -np.inf], np.nan)
 X = X.fillna(0)
 X = X.astype(np.float64)
 
-# 3. Seleção de Features -------------------------------------------------------
 print("\nSelecionando features relevantes...")
 
 # Remover features com variância zero
@@ -91,7 +79,6 @@ print(f"Features originais: {X.shape[1]}, Features selecionadas: {len(selected_c
 # Atualizar X com features selecionadas
 X = pd.DataFrame(X_selected, columns=selected_columns)
 
-# 4. Classificação Binária (Benigno vs Maligno) --------------------------------
 print("\nIniciando classificação binária...")
 
 # Dividir dados binários
@@ -104,23 +91,6 @@ scaler = StandardScaler()
 X_train_bin_scaled = scaler.fit_transform(X_train_bin)
 X_test_bin_scaled = scaler.transform(X_test_bin)
 
-"""
-
-
-
-
-
-
-#######################################################################
-
-
-
-
-
-
-"""
-
-# 8. Modelo para Grandes Volumes de Dados -------------------------------------
 print("\nTreinando modelo para grandes volumes de dados...")
 
 # treino de classificação binária
@@ -132,16 +102,6 @@ y_pred = neigh.predict(X_test_bin_scaled)
 print("\nRelatório Binário:")
 print(classification_report(y_test_bin, y_pred))
 
-# # Usar LinearSVC (mais eficiente)
-# linear_svc = LinearSVC(C=0.1, class_weight='balanced', max_iter=10000, random_state=42)
-# linear_svc.fit(X_train_bin_scaled, y_train_bin)
-
-# Avaliar
-# y_pred_linear = linear_svc.predict(X_test_bin_scaled)
-# print("\nRelatório LinearSVC (Binário):")
-# print(classification_report(y_test_bin, y_pred_linear))
-
-# 5'. Classificação Multiclasse (Tipos de Ameaças) ------------------------------
 print("\nIniciando classificação multiclasse...")
 
 # Filtrar apenas amostras malignas
@@ -178,26 +138,6 @@ y_pred_multi = neigh_multi.predict(X_test_multi_scaled)
 print("\nRelatório Multiclasse:")
 print(classification_report(y_test_multi, y_pred_multi))
 
-# Treinar SVM multiclasse
-# svm_multi = SVC(
-#     kernel='rbf', 
-#     C=10,
-#     gamma=0.01,
-#     decision_function_shape='ovr',
-#     class_weight=class_weights,
-#     random_state=42,
-#     probability=True
-# )
-# svm_multi.fit(X_train_multi_scaled, y_train_multi)
-
-# svm_multi_linear = LinearSVC(C=0.1, class_weight=class_weights, max_iter=10000, random_state=42)
-# svm_multi_linear.fit(X_train_multi_scaled, y_train_multi)
-
-# Avaliar
-# y_pred_multi = svm_multi_linear.predict(X_test_multi_scaled)
-# print("\nRelatório Multiclasse (Tipos de Malignos):")
-# print(classification_report(y_test_multi, y_pred_multi))
-
 # Matriz de confusão
 cm_multi = confusion_matrix(y_test_multi, y_pred_multi)
 sns.heatmap(cm_multi, annot=True, fmt='d', cmap='Blues',
@@ -208,7 +148,6 @@ plt.xticks(rotation=45)
 plt.show()
 
 
-# 9. Análise de Importância de Features (Opcional) ----------------------------
 print("\nAnalisando importância das features...")
 
 # Usar modelo linear para interpretabilidade
