@@ -11,7 +11,7 @@ df = pd.read_csv('output-of-benign-pcap-3.csv')  # ou use encoding='utf-8' / 'la
 # print(df.dtypes.value_counts())
 
 # print(df["src_port"].unique())
-print(df["dst_port"].unique())
+# print(df["dst_port"].unique())
 # print(df["character_distribution"].unique())
 # features = list(df.columns)
 # print (features)
@@ -33,3 +33,10 @@ print(total_bytes)
 testar pegar 70% de cada categoria ao invés de 70% de todo o dataset com
 as categorias concatenadas
 """
+
+# filtro para criar dataset com dominios brasileiros (.br)
+pattern = r"\.br$"
+mask = df["dns_domain_name"].str.contains(pattern, regex=True)
+df_br = df[mask]
+print(df_br)
+print(df_br["dns_domain_name"].nunique())
