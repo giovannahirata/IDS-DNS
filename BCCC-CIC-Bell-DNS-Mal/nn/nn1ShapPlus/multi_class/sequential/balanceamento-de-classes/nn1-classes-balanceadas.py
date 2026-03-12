@@ -57,7 +57,7 @@ print(f"  - Malware: {len(df_malware)}")
 print(f"  - Phishing: {len(df_phishing)}")
 print(f"  - Spam: {len(df_spam)}")
 
-cols_remove = ['Unnamed: 0', 'flow_id', 'timestamp', 'src_ip', 'dst_ip', 'src_port', 'dst_port']
+cols_remove = ['Unnamed: 0', 'flow_id', 'timestamp', 'src_ip', 'dst_ip', 'src_port', 'dst_port', 'label']
 df_benign = df_benign.drop(columns=cols_remove)
 df_malicious = df_malicious.drop(columns=cols_remove)
 
