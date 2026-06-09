@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 
-df = pd.read_csv('output-of-benign-pcap-3.csv')
-df_br = pd.read_csv('datasets-br/output-of-spam-br-pcap.csv') 
-df_inter = pd.read_csv('datasets-inter/output-of-spam-inter-pcap.csv')
+# df = pd.read_csv('output-of-benign-pcap-3.csv')
+df_br = pd.read_csv('datasets-br/output-of-phishing-br-pcap.csv') 
+# df_inter = pd.read_csv('datasets-inter/output-of-spam-inter-pcap.csv')
 
 # print(df.head())             # Ver as primeiras linhas
 # print(df.columns)           # Ver nomes das colunas
@@ -37,8 +37,10 @@ as categorias concatenadas
 """
 
 # print(f"Número de domínios originais: {df["dns_domain_name"].nunique()}")
-# print(f"Número de domínios brasileiros: {df_br["dns_domain_name"].nunique()}")
+print(f"Número de domínios brasileiros: {df_br["dns_domain_name"].nunique()}")
+print(df_br["dns_domain_name"].unique())
+print(df_br["dns_domain_name"].count())
 # print(f"Número de domínios internacionais (sem .br): {df_inter["dns_domain_name"].nunique()}")
 # print(f"Soma dos domínios brasileiros e internacionais: {(df_br["dns_domain_name"].nunique())+(df_inter["dns_domain_name"].nunique())}")
 
-print(df["dst_port"].unique())
+# print(df["dst_port"].unique())
