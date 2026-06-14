@@ -1,0 +1,3 @@
+[submodule "Extrator_ALFlowLyzer"]
+	path = Extrator_ALFlowLyzer
+	url = https://github.com/giovannahirata/ALFlowLyzer.git
