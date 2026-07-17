@@ -17,8 +17,6 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.metrics import roc_auc_score, roc_curve
 import pickle
 import shap
-import signal
-import sys
 
 def feature_indices(features, category_features):
     """
@@ -537,79 +535,90 @@ plt.savefig('confusion_matrix_hybrid.png', dpi=150, bbox_inches='tight')
 plt.close()
 print("Matriz de confusão salva: confusion_matrix_hybrid.png")
 
-# análise SHAP
-print("\nAnálise SHAP (com amostragem reduzida para evitar timeout)")
+# análise SHAP do modelo completo (híbrido)
+print("\nAnálise SHAP (modelo híbrido completo)")
 
-BACKGROUND_SAMPLES = 50
-TEST_SAMPLES = 10
-TIMEOUT_SHAP = 300
-
-def timeout_handler(signum, frame):
-    print("\n[TIMEOUT] Análise SHAP excedeu o tempo limite. Abortando...")
-    sys.exit(1)
+BACKGROUND_SAMPLES = 100
+TEST_SAMPLES = 50
 
 try:
+    # seleciona amostras para background e teste
+    x_train_lex_sample = x_train_lexical[:BACKGROUND_SAMPLES]
     x_train_comp_sample = x_train_comportamental[:BACKGROUND_SAMPLES]
+    x_train_prot_sample = x_train_protocolo[:BACKGROUND_SAMPLES]
+    
+    x_valid_lex_sample = x_valid_lexical[:TEST_SAMPLES]
     x_valid_comp_sample = x_valid_comportamental[:TEST_SAMPLES]
+    x_valid_prot_sample = x_valid_protocolo[:TEST_SAMPLES]
     
-    print(f"Background: {len(x_train_comp_sample)} amostras")
-    print(f"Teste: {len(x_valid_comp_sample)} amostras")
-    print(f"Timeout SHAP: {TIMEOUT_SHAP}s")
+    print(f"Background: {BACKGROUND_SAMPLES} amostras")
+    print(f"Teste: {TEST_SAMPLES} amostras")
     
-    # define timeout
-    signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(TIMEOUT_SHAP)
+    print("\nGerando explicabilidade para o modelo híbrido...")
     
-    print("\nGerando explicabilidade para Ramo Comportamental...")
-    
-    model_behavior_only = keras.Model(
-        inputs=model.input[1],
-        outputs=model.layers[-6].output
+    explainer = shap.GradientExplainer(
+        model,
+        [x_train_lex_sample, x_train_comp_sample, x_train_prot_sample]
     )
     
-    explainer_behavior = shap.DeepExplainer(model_behavior_only, x_train_comp_sample)
-    shap_values_behavior = explainer_behavior.shap_values(x_valid_comp_sample)
+    print("Calculando valores SHAP...")
+    shap_values = explainer.shap_values(
+        [x_valid_lex_sample, x_valid_comp_sample, x_valid_prot_sample]
+    )
     
-    signal.alarm(0)  # cancela o timeout
-    
-    if isinstance(shap_values_behavior, list):
-        shap_array_behavior = shap_values_behavior[0]
+    if isinstance(shap_values, list):
+        if len(shap_values) == 1 or (len(shap_values) == 2 and isinstance(shap_values[0], list)):
+            shap_values = shap_values[0]
+            
+        shap_array = np.concatenate(shap_values, axis=1)
     else:
-        shap_array_behavior = shap_values_behavior
+        shap_array = shap_values
     
-    if len(shap_array_behavior.shape) == 3 and shap_array_behavior.shape[2] == 1:
-        shap_array_behavior = shap_array_behavior[:, :, 0]
+    print(f"Shape dos SHAP values concatenados: {shap_array.shape}")
     
-    comportamental_feature_names = [selected_feature_names[i] for i in comportamental_indices]
+    if len(shap_array.shape) == 3:
+        if shap_array.shape[2] == 1:
+            shap_array = shap_array[:, :, 0]
+        elif shap_array.shape[0] == 1: 
+            shap_array = shap_array[0, :, :]
+            
+    print(f"Shape final dos SHAP values para o gráfico: {shap_array.shape}")
     
-    # summary plot
-    print("Salvando SHAP summary plot...")
-    plt.figure(figsize=(12, 10))
-    shap.summary_plot(shap_array_behavior, x_valid_comp_sample,
-                      feature_names=comportamental_feature_names,
-                      max_display=15, show=False)
-    plt.tight_layout()
-    plt.savefig('shap_summary_behavior_branch.png', dpi=150, bbox_inches='tight')
-    plt.close()
-    print("SHAP summary plot salvo: shap_summary_behavior_branch.png")
-
+    all_feature_names = (
+        [selected_feature_names[i] + " (Lex)" for i in lexical_indices] +
+        [selected_feature_names[i] + " (Comp)" for i in comportamental_indices] +
+        [selected_feature_names[i] + " (Prot)" for i in protocolo_indices]
+    )
+    
+    print(f"Total de features analisadas: {len(all_feature_names)}")
+    
+    x_valid_concatenated = np.concatenate([
+        x_valid_lex_sample,
+        x_valid_comp_sample,
+        x_valid_prot_sample
+    ], axis=1)
+    
     print("Salvando SHAP bar plot...")
-    plt.figure(figsize=(12, 10))
-    shap.summary_plot(shap_array_behavior, x_valid_comp_sample,
-                      feature_names=comportamental_feature_names,
-                      max_display=15, plot_type="bar", show=False)
+    plt.figure(figsize=(14, 10))
+    shap.summary_plot(
+        shap_array,
+        x_valid_concatenated,
+        feature_names=all_feature_names,
+        max_display=20,
+        plot_type="bar",
+        show=False
+    )
     plt.tight_layout()
-    plt.savefig('shap_bar_behavior_branch.png', dpi=150, bbox_inches='tight')
+    plt.savefig('shap_bar_plot_hybrid.png', dpi=150, bbox_inches='tight')
     plt.close()
-    print("SHAP bar plot salvo: shap_bar_behavior_branch.png")
+    print("SHAP bar plot salvo: shap_bar_plot_hybrid.png")
     print("\nAnálise SHAP concluída com sucesso")
 
 except Exception as e:
-    signal.alarm(0)  # cancela o timeout em caso de erro
     print(f"\nErro na análise SHAP: {e}")
-    print("  Continuando com o resto do pipeline...")
-
-
+    import traceback
+    traceback.print_exc() 
+    print("Continuando com o resto do pipeline...")
 
 # salva modelo
 print('\nSalvando o modelo')
