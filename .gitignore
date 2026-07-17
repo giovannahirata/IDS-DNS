@@ -9,6 +9,7 @@ Miniconda3-*.sh
 *.parquet
 *.json
 *.txt
+*.pcap
 !features.txt
 !requirements.txt
 !README.txt
