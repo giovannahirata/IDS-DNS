@@ -205,13 +205,16 @@ df_final['confianca'] = np.max(probs_medias, axis=1).round(4)
 
 # Avaliação do acerto
 df_final['resultado'] = np.where(df_final['tipo_real'] == df_final['classe_predita'], 'Correto', 'Erro')
+df_final['binario_real'] = np.where(df_final['tipo_real'] == 'Benigno', 'Benigno', 'Maligno')
+df_final['binario_predito'] = np.where(df_final['classe_predita'] == 'Benigno', 'Benigno', 'Maligno')
+df_final['resultado_binario'] = np.where(df_final['binario_real'] == df_final['binario_predito'], 'Correto', 'Erro')
 
 # Formata colunas de probabilidade para 4 casas decimais
 for col in prob_cols:
     df_final[col] = df_final[col].round(4)
 
 # Reordenação para visualização limpa
-colunas_exibicao = ['dns_domain_name', 'tipo_real', 'classe_predita', 'confianca', 'resultado']
+colunas_exibicao = ['dns_domain_name', 'tipo_real', 'classe_predita', 'resultado', 'resultado_binario']
 print("\n" + "="*95)
 print("INFERÊNCIA MULTICLASSE (BENIGNO, MALWARE, PHISHING, SPAM)")
 print("="*95)
