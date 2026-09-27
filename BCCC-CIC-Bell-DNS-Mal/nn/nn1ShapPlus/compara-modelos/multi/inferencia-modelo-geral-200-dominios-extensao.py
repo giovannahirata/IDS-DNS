@@ -141,6 +141,9 @@ model, scaler, selector, label_encoders = load_artifacts_multiclass(pasta_modelo
 dataset_dir = "/home/giovanna/Deteccao-de-Intrusoes-baseada-em-Perfil-Comportamental-de-DNS-utilizando-Redes-Neurais/BCCC-CIC-Bell-DNS-Mal/datasets-br/"
 test_files = [
     dataset_dir + "output-of-benign-br-pcap-0.csv",
+    dataset_dir + "output-of-benign-br-pcap-1.csv",
+    dataset_dir + "output-of-benign-br-pcap-2.csv",
+    dataset_dir + "output-of-benign-br-pcap-3.csv",
     dataset_dir + "output-of-malware-br-pcap.csv",
     dataset_dir + "output-of-phishing-br-pcap.csv",
     dataset_dir + "output-of-spam-br-pcap.csv"
